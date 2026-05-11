@@ -1,0 +1,111 @@
+% TikZ figures + methods snippet for the Othello continuation paper
+% Requires in preamble:
+% \usepackage{tikz}
+% \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+
+% ---------- Figure 1: training pipeline ----------
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  node distance=7mm and 8mm,
+  box/.style={draw, rounded corners, align=center, minimum height=9mm, inner sep=3pt},
+  smallbox/.style={draw, rounded corners, align=center, minimum height=7mm, inner sep=2.5pt},
+  group/.style={draw, rounded corners, dashed, inner sep=5pt}
+]
+
+\node[box, minimum width=28mm] (base) {Shared base checkpoint\\$\theta_0$ (e.g. epoch 50)};
+
+\node[box, minimum width=34mm, right=22mm of base, yshift=13mm] (fixeddata) {Fixed branch\\sample exogenous games from\\\texttt{train\_classic\_20M.zarr}};
+\node[box, minimum width=34mm, below=8mm of fixeddata] (fixedtrain) {Train 1 epoch with the\\same next-token loss};
+\node[box, minimum width=34mm, below=8mm of fixedtrain] (fixedckpt) {Save checkpoint\\$\theta^{\mathrm{fix}}_{t+1}$};
+
+\node[box, minimum width=39mm, right=18mm of fixeddata] (curiousroll) {Curious branch\\legal self-play from current\\checkpoint $\theta^{\mathrm{cur}}_t$};
+\node[smallbox, minimum width=39mm, below=5mm of curiousroll] (score) {For each legal move $a$:\\$\mathrm{score}(a)=\log p_\theta(a\mid h_t)/\tau + \beta\,\mathrm{nov}(s'_a)$};
+\node[smallbox, minimum width=39mm, below=5mm of score] (knn) {kNN novelty:\\$\mathrm{nov}(s'_a)=\frac{1}{k}\sum_{j\in \mathcal N_k}\! d(\phi(s'_a),\phi(s_j))$};
+\node[smallbox, minimum width=39mm, below=5mm of knn] (archive) {Archive of prior board descriptors\\$\phi(s)$ (global novelty)};
+\node[box, minimum width=39mm, below=7mm of archive] (curioustrain) {Write curious corpus $D^{\mathrm{cur}}_t$\\then train 1 epoch with the\\same next-token loss};
+\node[box, minimum width=39mm, below=8mm of curioustrain] (curiousckpt) {Save checkpoint\\$\theta^{\mathrm{cur}}_{t+1}$};
+
+\draw[->] (base) -- node[above, sloped] {copy $\theta_0$} (fixeddata.west);
+\draw[->] (base.east) -- ++(8mm,0) |- (curiousroll.west);
+\draw[->] (fixeddata) -- (fixedtrain);
+\draw[->] (fixedtrain) -- (fixedckpt);
+\draw[->] (curiousroll) -- (score);
+\draw[->] (score) -- (knn);
+\draw[->] (knn) -- (archive);
+\draw[->] (archive) -- (curioustrain);
+\draw[->] (curioustrain) -- (curiousckpt);
+\draw[->, dashed] (curiousckpt.east) -- ++(10mm,0) |- node[pos=0.25,right] {regenerate corpus each epoch} (curiousroll.east);
+\draw[->, dashed] (fixedckpt.west) -- ++(-10mm,0) |- node[pos=0.25,left] {resample fixed shard each epoch} (fixeddata.west);
+
+\node[group, fit=(fixeddata)(fixedtrain)(fixedckpt), label=above:{\textbf{Standard continuation}}] {};
+\node[group, fit=(curiousroll)(score)(knn)(archive)(curioustrain)(curiousckpt), label=above:{\textbf{Curious / bounded open-ended continuation}}] {};
+
+\end{tikzpicture}
+\caption{Shared-init continuation setup. Both branches use the same transformer, optimizer, and next-token objective. The only difference is how training experience is generated: the fixed branch draws exogenous games from the released Classic corpus, while the curious branch regenerates legal self-play games using novelty-biased move sampling.}
+\label{fig:training_pipeline}
+\end{figure}
+
+
+% ---------- Figure 2: analysis pipeline ----------
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  node distance=6mm and 8mm,
+  box/.style={draw, rounded corners, align=center, minimum height=9mm, inner sep=3pt},
+  smallbox/.style={draw, rounded corners, align=center, minimum height=7mm, inner sep=2.5pt},
+  group/.style={draw, rounded corners, dashed, inner sep=5pt}
+]
+
+\node[box, minimum width=30mm] (ckpts) {Input checkpoints\\base / fixed / curious};
+\node[box, minimum width=30mm, below=7mm of ckpts] (eval) {Shared evaluation prefixes\\same Classic games for all models};
+\node[box, minimum width=34mm, right=15mm of ckpts, yshift=-4mm] (compare) {\texttt{curiosity\_interp\_starter.py compare}\\extract logits + residual activations};
+\node[smallbox, minimum width=31mm, right=10mm of compare, yshift=9mm] (policy) {Policy-level outputs\\JS divergence by move\\Top-1 disagreement};
+\node[smallbox, minimum width=31mm, right=10mm of compare, yshift=-9mm] (latent) {Latent-space outputs\\activation cosine\\optional PCA};
+
+\node[box, minimum width=34mm, below=18mm of compare] (drift) {\texttt{openended\_othello\_paperplots.py}\\\texttt{weight-drift}};
+\node[smallbox, minimum width=31mm, right=10mm of drift] (weights) {Weight-space outputs\\layerwise $\|\Delta W\|/\|W_0\|$\\attention vs MLP drift};
+
+\node[box, minimum width=31mm, below=18mm of eval] (optionalprobe) {Optional appendix path\\\texttt{train-probe / eval-probe}\\\texttt{probe-geometry}};
+
+\node[box, minimum width=36mm, right=16mm of weights, yshift=-6mm] (paperfigs) {Paper figures\\latent geometry\\output divergence\\weight localization};
+
+\draw[->] (ckpts) -- (eval);
+\draw[->] (ckpts.east) -- (compare.west);
+\draw[->] (eval.east) -- (compare.west);
+\draw[->] (compare) -- (policy);
+\draw[->] (compare) -- (latent);
+\draw[->] (ckpts.east) -- ++(7mm,0) |- (drift.west);
+\draw[->] (drift) -- (weights);
+\draw[->, dashed] (eval.east) -- ++(8mm,0) |- (optionalprobe.east);
+\draw[->] (policy.east) -- ++(8mm,0) |- (paperfigs.north west);
+\draw[->] (latent.east) -- ++(8mm,0) |- (paperfigs.west);
+\draw[->] (weights.east) -- (paperfigs.west);
+\draw[->, dashed] (optionalprobe.east) -- ++(12mm,0) |- (paperfigs.south west);
+
+\node[group, fit=(compare)(policy)(latent), label=above:{\textbf{Shared-prefix latent/output comparison}}] {};
+\node[group, fit=(drift)(weights), label=above:{\textbf{Weight-space localization}}] {};
+
+\end{tikzpicture}
+\caption{Methodology overview aligned to the analysis scripts. The main analyses are training-free comparisons on shared prefixes: output divergence, activation similarity, and base-relative weight drift. Probe-based analyses can be kept optional or moved to an appendix.}
+\label{fig:analysis_pipeline}
+\end{figure}
+
+
+% ---------- Short methods text ----------
+\paragraph{Training setup.}
+We start from a shared pretrained MetaOthello Classic checkpoint $\theta_0$ and create two matched continuations. In the \emph{fixed} branch, we continue next-token training on exogenous Othello transcripts sampled from the released Classic corpus. In the \emph{curious} branch, we keep the same transformer, optimizer, and next-token objective, but replace exogenous continuation data with legal self-play games generated by the current model. Thus, the only experimental change is the data-generation loop.
+
+\paragraph{kNN novelty and curious continuation.}
+At each rollout step, we enumerate legal moves, simulate the resulting board $s'_a$ for each candidate move $a$, and score each candidate using
+\[
+\mathrm{score}(a)=\log p_\theta(a\mid h_t)/\tau + \beta\,\mathrm{nov}(s'_a).
+\]
+Here $h_t$ is the move history, $\tau$ is a sampling temperature, and $\beta$ controls novelty pressure. For kNN novelty, we encode the resulting board with a descriptor $\phi(s)$ (e.g., flattened board, side-to-move, and a coarse ply bucket) and compute novelty as the mean distance to the $k$ nearest descriptors in a global archive of previously visited states. We then sample from the legal-move softmax induced by these adjusted scores. After generating a corpus of curious self-play games, we train for one epoch with the same next-token loss and repeat the generate--train cycle from the newest checkpoint.
+
+\paragraph{Analysis.}
+After training, we compare the base, fixed, and curious checkpoints on a shared evaluation set of Othello prefixes. The main latent-space analyses are policy divergence on shared prefixes, activation cosine similarity across layers, and optional low-dimensional visualization. The main weight-space analysis is base-relative layerwise drift, summarized separately for attention and MLP blocks. In a short abstract, optional probe-based analyses can be treated as supporting evidence rather than the central methodological claim.

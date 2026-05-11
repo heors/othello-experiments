@@ -1,0 +1,12 @@
+pixi run python -m metaothello_helpers.train_fixed_resample \
+  --run_dir data/classic_fixed_e50 \
+  --src_zarr data/classic/train_classic_20M.zarr \
+  --init_ckpt data/classic/ckpts/epoch_50.ckpt \
+  --epochs 10 \
+  --games_per_epoch 5000 \
+  --val_games 10000 \
+  --eval_num_games 2000 \
+  --game classic \
+  --batch_size 256 \
+  --learning_rate 1e-4 \
+  --wandb_name classic_fixed_e50_2

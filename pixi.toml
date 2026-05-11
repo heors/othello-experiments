@@ -1,0 +1,35 @@
+[workspace]
+authors = ["MetaOthello experiment maintainers"]
+channels = ["conda-forge"]
+name = "metaothello-continuation"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[dependencies]
+python = ">=3.12,<3.13"
+
+[pypi-dependencies]
+einops = ">=0.7"
+huggingface-hub = ">=0.20"
+matplotlib = ">=3.8"
+numpy = ">=1.26"
+scipy = ">=1.12"
+torch = ">=2.1"
+tqdm = ">=4.66"
+transformer-lens = ">=1.14"
+wandb = ">=0.16"
+xarray = ">=2024.1"
+zarr = ">=2.16"
+
+[tasks]
+download-classic-assets = "python -m metaothello_helpers.download_assets"
+eval-classic-e50 = "python -m metaothello_helpers.eval_ckpt --ckpt data/classic/ckpts/epoch_50.ckpt --game classic --num_games 2000 --batch_size 1024"
+train-fixed-e50 = { cmd = "python -m metaothello_helpers.train_fixed_resample --run_dir data/classic_fixed_e50 --src_zarr data/classic/train_classic_20M.zarr --init_ckpt data/classic/ckpts/epoch_50.ckpt --epochs 10 --games_per_epoch 5000 --val_games 10000 --eval_num_games 2000 --game classic --batch_size 256 --learning_rate 1e-4 --wandb_name classic_fixed_e50", env = { PYTHONUNBUFFERED = "1" } }
+train-curious-knn-e50 = { cmd = "python -m metaothello_helpers.train_curious_resample --run_dir data/classic_curious_knn_e50 --init_ckpt data/classic/ckpts/epoch_50.ckpt --epochs 10 --game classic --novelty knn --beta 0.25 --tau 1.0 --k 32 --archive_size 10000 --games_per_refresh 2500 --refreshes_per_epoch 2 --val_zarr data/classic/train_classic_20M.zarr --val_games 10000 --eval_num_games 2000 --batch_size 256 --learning_rate 1e-4 --wandb_name classic_curious_knn_e50", env = { PYTHONUNBUFFERED = "1" } }
+train-curious-count-e50 = { cmd = "python -m metaothello_helpers.train_curious_resample --run_dir data/classic_curious_count_e50 --init_ckpt data/classic/ckpts/epoch_50.ckpt --epochs 10 --game classic --novelty count --beta 0.25 --tau 1.0 --archive_size 5000 --games_per_refresh 2500 --refreshes_per_epoch 2 --val_zarr data/classic/train_classic_20M.zarr --val_games 10000 --eval_num_games 2000 --batch_size 256 --learning_rate 1e-4 --wandb_name classic_curious_count_e50", env = { PYTHONUNBUFFERED = "1" } }
+help-eval = "python -m metaothello_helpers.eval_ckpt --help"
+help-generate-curious = "python -m metaothello_helpers.generate_curious_data --help"
+help-train-fixed = "python -m metaothello_helpers.train_fixed_resample --help"
+help-train-curious = "python -m metaothello_helpers.train_curious_resample --help"
+help-interp = "python -m paper.curiosity_interp_starter --help"
+help-paper-plots = "python -m paper.openended_othello_paperplots --help"
