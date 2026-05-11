@@ -1,8 +1,6 @@
-# MetaOthello Continuation Experiments
+# Othello World Decomposition Experiments
 
-This is the experiment-only MetaOthello continuation repo. It keeps the code
-needed to evaluate the shared Classic checkpoint, continue it on fixed data, and
-continue it with novelty-biased curious self-play.
+Repository holding my poeject files for work on decomposting othello world model under discovery-pressured training regimes.
 
 All commands are run through Pixi from the repository root.
 
@@ -121,3 +119,16 @@ pixi run help-train-curious
 pixi run help-interp
 pixi run help-paper-plots
 ```
+
+### If you use this repository, please cite the MetaOthello work:
+
+```bibtex
+@misc{chawla2026metaothello,
+  title = {Interpreting Effects of Open-Ended Learning in Transformers: An
+Othello Study},
+  author = {Heorhii Skovorodnikov},
+  year = {2026},
+  note = {Manuscript in preparation},
+}
+```
+
