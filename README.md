@@ -17,7 +17,7 @@ pixi run python --version
 
 Download the Classic assets used by the continuation scripts:
 
-```zsh
+```shell
 pixi run download-classic-assets
 ```
 
