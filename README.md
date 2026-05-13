@@ -1,6 +1,9 @@
 # Othello World Decomposition Experiments
 
-Repository holding my poeject files for work on decomposting othello world model under discovery-pressured training regimes.
+
+![Alt Text](paintmove.png)
+
+Repository holding my project files for work on decomposting othello world model under discovery-pressured training regimes.
 
 All commands are run through Pixi from the repository root.
 
