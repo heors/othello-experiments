@@ -11,7 +11,7 @@ All commands are run through Pixi from the repository root.
 
 Install Pixi, then let Pixi create the environment on first run:
 
-```bash
+```console
 pixi run python --version
 ```
 
