@@ -17,7 +17,7 @@ pixi run python --version
 
 Download the Classic assets used by the continuation scripts:
 
-```bash
+```zsh
 pixi run download-classic-assets
 ```
 
@@ -34,13 +34,13 @@ data/classic/
 
 Evaluate the epoch-50 checkpoint on fresh Classic games:
 
-```bash
+```console
 pixi run eval-classic-e50
 ```
 
 Run the fixed-corpus continuation:
 
-```bash
+```console
 pixi run train-fixed-e50
 ```
 
@@ -52,13 +52,13 @@ pixi run train-curious-knn-e50
 
 Run curious continuation with count-based novelty:
 
-```bash
+```console
 pixi run train-curious-count-e50
 ```
 
 Generate a standalone curious corpus:
 
-```bash
+```console
 pixi run python -m metaothello_helpers.generate_curious_data \
   --ckpt data/classic/ckpts/epoch_50.ckpt \
   --out data/classic_curious_e50/train_curious_knn_10k.zarr \
@@ -74,7 +74,7 @@ pixi run python -m metaothello_helpers.generate_curious_data \
 
 Slurm launchers live in `launchers/`:
 
-```bash
+```console
 sbatch launchers/train_fixed_e50.sh
 sbatch launchers/train_curious_knn_e50.sh
 sbatch launchers/train_curious_count_e50.sh
@@ -88,14 +88,14 @@ is a small fixed-run convenience launcher.
 
 Interpretability and plotting helpers live in `paper/`.
 
-```bash
+```console
 pixi run python -m paper.curiosity_interp_starter --help
 pixi run python -m paper.openended_othello_paperplots --help
 ```
 
 Examples:
 
-```bash
+```console
 pixi run python -m paper.openended_othello_paperplots training-curves \
   --run fixed data/classic_fixed_e50 \
   --run curious data/classic_curious_knn_e50 \
@@ -103,7 +103,7 @@ pixi run python -m paper.openended_othello_paperplots training-curves \
   --plot_out data/paper/training_curves.png
 ```
 
-```bash
+```console
 pixi run python -m paper.curiosity_interp_starter compare \
   --ckpt_a data/classic_fixed_e50/ckpts/epoch_60.ckpt \
   --ckpt_b data/classic_curious_knn_e50/ckpts/epoch_60.ckpt \
@@ -114,7 +114,7 @@ pixi run python -m paper.curiosity_interp_starter compare \
 
 ## Useful Help
 
-```bash
+```console
 pixi run help-eval
 pixi run help-generate-curious
 pixi run help-train-fixed
