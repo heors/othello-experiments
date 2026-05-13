@@ -46,7 +46,7 @@ pixi run train-fixed-e50
 
 Run curious continuation with kNN novelty:
 
-```bash
+```console
 pixi run train-curious-knn-e50
 ```
 
